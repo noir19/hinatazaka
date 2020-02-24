@@ -66,18 +66,6 @@ async function main() {
   }
 }
 
-async function getMemEntries(baseUrl, page) {
-  const memEntries = []
-  const baseMemEntries = await page.$$eval(
-    'div.p-blog-member-filter > div > form > select > option:not(:nth-child(1))',
-    options => options.map(option => option.value)
-  )
-  for (const baseMemEntry of baseMemEntries) {
-    memEntries.push(`${baseUrl}${baseMemEntry}`)
-  }
-  return memEntries
-}
-
 async function getMemEntDict(baseUrl, page) {
   const memEntDict = {}
   const baseMemNodes = await page.$$(
