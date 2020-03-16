@@ -71,12 +71,6 @@ const downloadImage = async (url, pathArr, name) => {
   }
   const writer = fs.createWriteStream(Path.resolve(__dirname, basePath, name))
 
-  // const response = await axios({
-  //   url,
-  //   method: 'GET',
-  //   responseType: 'stream'
-  // })
-  // response.data.pipe(writer)
   axios({
     url,
     method: 'GET',
