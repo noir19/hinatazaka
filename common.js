@@ -16,9 +16,12 @@ $.prototype.entries = function*() {
 }
 
 async function getResponseData(url) {
+  // 获取指定url的get响应数据
   return await axios.get(url).then(response => response.data)
 }
+
 async function getMemEntDict(baseUrl) {
+  // 获取成员名字和博客入口字典
   const memEntDict = {}
   const homePage = await getResponseData(
     'https://www.hinatazaka46.com/s/official/diary/member?ima=0000'
@@ -35,6 +38,7 @@ async function getMemEntDict(baseUrl) {
 }
 
 async function getPrevUrl(blog) {
+  // 获取上一篇博客的url
   return $(
     '.c-pager__item.c-pager__item--prev.c-pager__item--kiji.c-pager__item--kiji__blog>a',
     blog
@@ -42,6 +46,7 @@ async function getPrevUrl(blog) {
 }
 
 async function getFirstBlog(url) {
+  // 获取最新博客的url
   const blog = await getResponseData(url)
   return $(
     'div.p-blog-group > div:nth-child(1) > div.p-button__blog_detail > a',
@@ -62,10 +67,12 @@ async function getPicture(blog) {
 }
 
 async function getSelectedText(selector, blog) {
+  // 获取指定选择器的文本内容
   return $(selector, blog).text()
 }
 
 async function downloadImage(url, pathArr, name) {
+  // 下载图片
   let basePath = 'images'
   createDir(basePath)
   for (const path of pathArr) {
