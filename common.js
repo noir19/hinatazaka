@@ -1,42 +1,68 @@
 const fs = require('fs')
 const Path = require('path')
-const Axios = require('axios')
+const axios = require('axios')
+const $ = require('cheerio')
 
-async function getMemEntDict(baseUrl, page) {
+$.prototype[Symbol.iterator] = function*() {
+  for (let i = 0; i < this.length; i += 1) {
+    yield this[i]
+  }
+}
+
+$.prototype.entries = function*() {
+  for (let i = 0; i < this.length; i += 1) {
+    yield [i, this[i]]
+  }
+}
+
+async function getResponseData(url) {
+  return await axios.get(url).then(response => response.data)
+}
+async function getMemEntDict(baseUrl) {
   const memEntDict = {}
-  const baseMemNodes = await page.$$(
-    'div.p-blog-member-filter > div > form > select > option:not(:nth-child(1))'
+  const homePage = await getResponseData(
+    'https://www.hinatazaka46.com/s/official/diary/member?ima=0000'
   )
-  for (const baseMemNode of baseMemNodes) {
-    const memName = (await baseMemNode.evaluate(node => node.innerText)).split(
-      '('
-    )[0]
-    const memEntry = await baseMemNode.evaluate(node => node.value)
-    memEntDict[memName] = `${baseUrl}${memEntry}`
+
+  const mems = $('.js-select > option:not(:nth-child(1))', homePage)
+  for (const mem of mems) {
+    const memName = $(mem)
+      .text()
+      .split('(')[0]
+    memEntDict[memName] = baseUrl + $(mem).attr('value')
   }
   return memEntDict
 }
 
-async function getPicture(page) {
-  const mainContent = await page.$(
-    'div.l-maincontents--blog > div.p-blog-group > div > div.c-blog-article__text'
-  )
-  const imgs = await mainContent.$$('img:not([class])')
-  const srcs =
-    imgs.length === 0
-      ? []
-      : await Promise.all(
-          imgs.map(async img => await img.evaluate(node => node.src))
-        )
+async function getPrevUrl(blog) {
+  return $(
+    '.c-pager__item.c-pager__item--prev.c-pager__item--kiji.c-pager__item--kiji__blog>a',
+    blog
+  ).attr('href')
+}
+
+async function getFirstBlog(url) {
+  const blog = await getResponseData(url)
+  return $(
+    'div.p-blog-group > div:nth-child(1) > div.p-button__blog_detail > a',
+    blog
+  ).attr('href')
+}
+
+async function getPicture(blog) {
+  const imgs = await $('.c-blog-article__text img', blog)
+  console.log(imgs.length)
+  const srcs = []
+  if (imgs.length !== 0) {
+    for (const img of imgs) {
+      srcs.push($(img).attr('src'))
+    }
+  }
   return srcs
 }
 
-async function getPrevUrl(page) {
-  return await (
-    await page.$(
-      'div.p-pager > div.c-pager__item.c-pager__item--prev.c-pager__item--kiji.c-pager__item--kiji__blog > a'
-    )
-  ).evaluate(node => node.href)
+async function getSelectedText(selector, blog) {
+  return $(selector, blog).text()
 }
 
 async function downloadImage(url, pathArr, name) {
@@ -48,13 +74,13 @@ async function downloadImage(url, pathArr, name) {
   }
   const writer = fs.createWriteStream(Path.resolve(__dirname, basePath, name))
 
-  // const response = await Axios({
+  // const response = await axios({
   //   url,
   //   method: 'GET',
   //   responseType: 'stream'
   // })
   // response.data.pipe(writer)
-  Axios({
+  axios({
     url,
     method: 'GET',
     responseType: 'stream'
@@ -72,4 +98,12 @@ function createDir(dirPath) {
   !fs.existsSync(dirPath) && fs.mkdirSync(dirPath)
 }
 
-module.exports = { getMemEntDict, getPicture, getPrevUrl, downloadImage }
+module.exports = {
+  getMemEntDict,
+  getPicture,
+  getPrevUrl,
+  getFirstBlog,
+  downloadImage,
+  getResponseData,
+  getSelectedText
+}
