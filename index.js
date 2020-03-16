@@ -4,7 +4,7 @@ const argv = process.argv
 
 const baseUrl = 'https://www.hinatazaka46.com'
 
-async function main(memberName) {
+async function main (memberName) {
   let memEntDict = {}
   const originMemEntDict = await common.getMemEntDict(baseUrl)
   if (memberName !== undefined) {
@@ -17,6 +17,7 @@ async function main(memberName) {
   } else memEntDict = originMemEntDict
   for (const [memName, memEntry] of Object.entries(memEntDict)) {
     let prevUrl = `${baseUrl}${await common.getFirstBlog(memEntry)}`
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       // console.log(prevUrl)
       const prevBlog = await common.getResponseData(prevUrl)

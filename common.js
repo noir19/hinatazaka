@@ -3,24 +3,22 @@ const Path = require('path')
 const axios = require('axios')
 const $ = require('cheerio')
 
-$.prototype[Symbol.iterator] = function*() {
+$.prototype[Symbol.iterator] = function* () {
   for (let i = 0; i < this.length; i += 1) {
     yield this[i]
   }
 }
 
-$.prototype.entries = function*() {
+$.prototype.entries = function* () {
   for (let i = 0; i < this.length; i += 1) {
     yield [i, this[i]]
   }
 }
 
-async function getResponseData(url) {
-  // 获取指定url的get响应数据
-  return await axios.get(url).then(response => response.data)
-}
+const getResponseData = async url =>
+  await axios.get(url).then(response => response.data)
 
-async function getMemEntDict(baseUrl) {
+const getMemEntDict = async baseUrl => {
   // 获取成员名字和博客入口字典
   const memEntDict = {}
   const homePage = await getResponseData(
@@ -37,24 +35,19 @@ async function getMemEntDict(baseUrl) {
   return memEntDict
 }
 
-async function getPrevUrl(blog) {
-  // 获取上一篇博客的url
-  return $(
+const getPrevUrl = async blog =>
+  $(
     '.c-pager__item.c-pager__item--prev.c-pager__item--kiji.c-pager__item--kiji__blog>a',
     blog
   ).attr('href')
-}
 
-async function getFirstBlog(url) {
-  // 获取最新博客的url
-  const blog = await getResponseData(url)
-  return $(
+const getFirstBlog = async url =>
+  $(
     'div.p-blog-group > div:nth-child(1) > div.p-button__blog_detail > a',
-    blog
+    await getResponseData(url)
   ).attr('href')
-}
 
-async function getPicture(blog) {
+const getPicture = async blog => {
   const imgs = await $('.c-blog-article__text img', blog)
   console.log(imgs.length)
   const srcs = []
@@ -66,12 +59,9 @@ async function getPicture(blog) {
   return srcs
 }
 
-async function getSelectedText(selector, blog) {
-  // 获取指定选择器的文本内容
-  return $(selector, blog).text()
-}
+const getSelectedText = async (selector, blog) => await $(selector, blog).text()
 
-async function downloadImage(url, pathArr, name) {
+const downloadImage = async (url, pathArr, name) => {
   // 下载图片
   let basePath = 'images'
   createDir(basePath)
@@ -101,9 +91,7 @@ async function downloadImage(url, pathArr, name) {
   })
 }
 
-function createDir(dirPath) {
-  !fs.existsSync(dirPath) && fs.mkdirSync(dirPath)
-}
+const createDir = dirPath => !fs.existsSync(dirPath) && fs.mkdirSync(dirPath)
 
 module.exports = {
   getMemEntDict,
