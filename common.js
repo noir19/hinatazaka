@@ -49,7 +49,6 @@ const getFirstBlog = async url =>
 
 const getPicture = async blog => {
   const imgs = await $('.c-blog-article__text img', blog)
-  console.log(imgs.length)
   const srcs = []
   if (imgs.length !== 0) {
     for (const img of imgs) {
@@ -64,7 +63,6 @@ const getSelectedText = async (selector, blog) => await $(selector, blog).text()
 const downloadImage = async (url, pathArr, name) => {
   // 下载图片
   let basePath = 'images'
-  createDir(basePath)
   for (const path of pathArr) {
     createDir(Path.resolve(__dirname, basePath, path))
     basePath = `${basePath}/${path}`
@@ -87,6 +85,15 @@ const downloadImage = async (url, pathArr, name) => {
 
 const createDir = dirPath => !fs.existsSync(dirPath) && fs.mkdirSync(dirPath)
 
+const getDirectories = path =>
+  fs
+    .readdirSync(path, { withFileTypes: true })
+    .filter(dir => dir.isDirectory())
+    .map(dir => dir.name)
+
+const intersection = (a, b) => a.filter(v => b.includes(v))
+const difference = (a, b) => a.concat(b).filter(v => !a.includes(v)) // b-a
+
 module.exports = {
   getMemEntDict,
   getPicture,
@@ -94,5 +101,9 @@ module.exports = {
   getFirstBlog,
   downloadImage,
   getResponseData,
-  getSelectedText
+  getSelectedText,
+  createDir,
+  getDirectories,
+  intersection,
+  difference
 }

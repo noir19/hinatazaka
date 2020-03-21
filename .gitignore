@@ -112,3 +112,5 @@ dist
 
 images/
 .history
+logs/
+history.json
