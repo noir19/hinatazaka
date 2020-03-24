@@ -24,13 +24,12 @@ const dateFormat = 'YYYY.MM.DD HH:mm'
 
 async function main (memberName) {
   const logName = `${moment().format('YYYY-MM-DD-HH:mm:ss')}.log`
-  createDir('./images')
   createDir('./logs')
   const logger = winston.createLogger(logConfiguration(logName))
   logger.info('tooth!')
   let historyBlog = {}
   const memEntDict = await getMemEntDict(baseUrl)
-  if (fs.existsSync('history.json')) {
+  if (fs.existsSync('./history.json')) {
     historyBlog = JSON.parse(fs.readFileSync('./history.json', 'utf-8'))
     let newMems = difference(Object.keys(historyBlog), Object.keys(memEntDict))
     let graduatedMems = difference(
@@ -42,11 +41,13 @@ async function main (memberName) {
         historyBlog[newMem] = `${baseUrl}${await getFirstBlog(
           memEntDict[newMem]
         )}`
+        logger.info(`添加${newMem}`)
       }
     }
     if (graduatedMems.length !== 0) {
       for (const graduatedMem of graduatedMems) {
         delete historyBlog[graduatedMem]
+        logger.info(`${graduatedMem}毕业`)
       }
     }
     if (newMems.length !== 0 || graduatedMems.length !== 0) {
@@ -80,12 +81,15 @@ async function main (memberName) {
           if (a < b) return 1
           return 0
         })
-      stopTime = memBlogsTime[0]
+      if (memBlogsTime.length > 0) stopTime = memBlogsTime[0]
     }
+    logger.info(`${memName}的stopTime:${stopTime.format(dateFormat)}`)
     let url = `${baseUrl}${await getFirstBlog(memEntry)}`
     let historyFLag = false
+    let title_time
     // eslint-disable-next-line no-constant-condition
     while (true) {
+      logger.info(url)
       let prevUrl
       try {
         let blog = await getResponseData(url)
@@ -102,44 +106,41 @@ async function main (memberName) {
             blog = await getResponseData(url)
             // 获取发布时间
             postTime = await getSelectedText('.c-blog-article__date>time', blog)
+            historyFLag = true
           }
-          historyFLag = true
         }
         const pathArr = [memName]
         // 获取标题
-        const title = (
-          await getSelectedText('.c-blog-article__title', blog)
-        ).trim()
-        try {
-          pathArr.push(`${postTime}-${title}`)
-          const picUrls = await getPicture(blog)
-          logger.info(
-            `${memName}-${postTime}-${title}-${picUrls.length}pictures`
-          )
-          if (picUrls.length !== 0) {
-            for (const picUrl of picUrls) {
-              const picUrlArr = picUrl.split('/')
-              const picName = picUrlArr[picUrlArr.length - 1]
-              await downloadImage(picUrl, pathArr, picName) // 加上await用于串行下载
-            }
+        const title = (await getSelectedText('.c-blog-article__title', blog))
+          .trim()
+          .slice(0, 20)
+        if (title_time === `${postTime}-${title}`) break
+        createDir(`./images/${memName}/${postTime}-${title}`)
+        pathArr.push(`${postTime}-${title}`)
+        const picUrls = await getPicture(blog)
+        logger.info(`${memName}-${postTime}-${title}-${picUrls.length}pictures`)
+        if (picUrls.length !== 0) {
+          for (const picUrl of picUrls) {
+            const picUrlArr = picUrl.split('/')
+            const picName = picUrlArr[picUrlArr.length - 1]
+            await downloadImage(picUrl, pathArr, picName) // 加上await用于串行下载
           }
-          if (moment(postTime, dateFormat) <= stopTime) {
-            historyBlog[memName] = url
-            fs.writeFileSync(
-              './history.json',
-              JSON.stringify(historyBlog),
-              'utf-8'
-            )
-          }
-          prevUrl = await getPrevUrl(blog)
-          if (prevUrl === undefined) {
-            break
-          } else {
-            url = `${baseUrl}${prevUrl}`
-          }
-        } catch (e) {
-          logger.error(e)
         }
+        if (moment(postTime, dateFormat) <= stopTime) {
+          historyBlog[memName] = url
+          fs.writeFileSync(
+            './history.json',
+            JSON.stringify(historyBlog),
+            'utf-8'
+          )
+        }
+        prevUrl = await getPrevUrl(blog)
+        if (prevUrl === undefined) {
+          break
+        } else {
+          url = `${baseUrl}${prevUrl}`
+        }
+        title_time = `${postTime}-${title}` // 保存当前的时间加标题
       } catch (e) {
         logger.error(e)
         break
@@ -150,6 +151,7 @@ async function main (memberName) {
 
 if (argv.length === 2) {
   main()
+  setInterval(main, 1000 * 3600 * 24)
 } else if (argv.length === 3) {
   main(argv[2])
 }

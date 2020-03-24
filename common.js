@@ -61,13 +61,11 @@ const getPicture = async blog => {
 const getSelectedText = async (selector, blog) => await $(selector, blog).text()
 
 const downloadImage = async (url, pathArr, name) => {
+  if (name === '') return
   // 下载图片
-  let basePath = 'images'
-  for (const path of pathArr) {
-    createDir(Path.resolve(__dirname, basePath, path))
-    basePath = `${basePath}/${path}`
-  }
-  const writer = fs.createWriteStream(Path.resolve(__dirname, basePath, name))
+  const writer = fs.createWriteStream(
+    Path.resolve(__dirname, ['.', 'images', ...pathArr].join('/'), name)
+  )
 
   axios({
     url,
@@ -83,7 +81,8 @@ const downloadImage = async (url, pathArr, name) => {
   })
 }
 
-const createDir = dirPath => !fs.existsSync(dirPath) && fs.mkdirSync(dirPath)
+const createDir = dirPath =>
+  !fs.existsSync(dirPath) && fs.mkdirSync(dirPath, { recursive: true })
 
 const getDirectories = path =>
   fs
