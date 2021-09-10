@@ -1,30 +1,31 @@
 const fs = require('fs')
 const Path = require('path')
 const axios = require('axios')
-const $ = require('cheerio')
+const cheerio = require('cheerio')
 
-$.prototype[Symbol.iterator] = function* () {
-  for (let i = 0; i < this.length; i += 1) {
-    yield this[i]
-  }
-}
+// cheerio.prototype[Symbol.iterator] = function* () {
+//   for (let i = 0; i < this.length; i += 1) {
+//     yield this[i]
+//   }
+// }
 
-$.prototype.entries = function* () {
-  for (let i = 0; i < this.length; i += 1) {
-    yield [i, this[i]]
-  }
-}
+// cheerio.prototype.entries = function* () {
+//   for (let i = 0; i < this.length; i += 1) {
+//     yield [i, this[i]]
+//   }
+// }
 
-const getResponseData = async url =>
-  await axios.get(url).then(response => response.data)
+const getResponseData = async (url) =>
+  await axios.get(url).then((response) => response.data)
 
-const getMemEntDict = async baseUrl => {
+const getMemEntDict = async (baseUrl) => {
   // 获取成员名字和博客入口字典
   const memEntDict = {}
   const homePage = await getResponseData(
     'https://www.hinatazaka46.com/s/official/diary/member?ima=0000'
   )
 
+  $ = cheerio.load(homePage)
   const mems = $('.js-select > option:not(:nth-child(1))', homePage)
   for (const mem of mems) {
     const memName = $(mem)
@@ -35,19 +36,19 @@ const getMemEntDict = async baseUrl => {
   return memEntDict
 }
 
-const getPrevUrl = async blog =>
+const getPrevUrl = async (blog) =>
   $(
     '.c-pager__item.c-pager__item--prev.c-pager__item--kiji.c-pager__item--kiji__blog>a',
     blog
   ).attr('href')
 
-const getFirstBlog = async url =>
+const getFirstBlog = async (url) =>
   $(
     'div.p-blog-group > div:nth-child(1) > div.p-button__blog_detail > a',
     await getResponseData(url)
   ).attr('href')
 
-const getPicture = async blog => {
+const getPicture = async (blog) => {
   const imgs = await $('.c-blog-article__text img', blog)
   const srcs = []
   if (imgs.length !== 0) {
@@ -71,7 +72,7 @@ const downloadImage = async (url, pathArr, name) => {
     url,
     method: 'GET',
     responseType: 'stream'
-  }).then(response => {
+  }).then((response) => {
     response.data.pipe(writer)
   })
 
@@ -81,17 +82,17 @@ const downloadImage = async (url, pathArr, name) => {
   })
 }
 
-const createDir = dirPath =>
+const createDir = (dirPath) =>
   !fs.existsSync(dirPath) && fs.mkdirSync(dirPath, { recursive: true })
 
-const getDirectories = path =>
+const getDirectories = (path) =>
   fs
     .readdirSync(path, { withFileTypes: true })
-    .filter(dir => dir.isDirectory())
-    .map(dir => dir.name)
+    .filter((dir) => dir.isDirectory())
+    .map((dir) => dir.name)
 
-const intersection = (a, b) => a.filter(v => b.includes(v))
-const difference = (a, b) => a.concat(b).filter(v => !a.includes(v)) // b-a
+const intersection = (a, b) => a.filter((v) => b.includes(v))
+const difference = (a, b) => a.concat(b).filter((v) => !a.includes(v)) // b-a
 
 module.exports = {
   getMemEntDict,
