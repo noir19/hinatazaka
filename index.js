@@ -73,8 +73,8 @@ async function main (memberName) {
     if (realMemName !== undefined && realMemName !== memName) {
       continue
     }
-    if (fs.existsSync(`./images/${memName}`)) {
-      let memBlogsTime = getDirectories(`./images/${memName}`)
+    if (fs.existsSync(`../hinatazakaImages/${memName}`)) {
+      let memBlogsTime = getDirectories(`../hinatazakaImages/${memName}`)
         .map(dir => moment(dir.split('-')[0], dateFormat))
         .sort((a, b) => {
           if (a > b) return -1
@@ -115,7 +115,7 @@ async function main (memberName) {
           .trim()
           .slice(0, 20)
         if (title_time === `${postTime}-${title}`) break
-        createDir(`./images/${memName}/${postTime}-${title}`)
+        createDir(`../hinatazakaImages/${memName}/${postTime}-${title}`)
         pathArr.push(`${postTime}-${title}`)
         const picUrls = await getPicture(blog)
         logger.info(`${memName}-${postTime}-${title}-${picUrls.length}pictures`)

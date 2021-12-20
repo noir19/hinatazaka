@@ -65,7 +65,7 @@ const downloadImage = async (url, pathArr, name) => {
   if (name === '') return
   // 下载图片
   const writer = fs.createWriteStream(
-    Path.resolve(__dirname, ['.', 'images', ...pathArr].join('/'), name)
+    Path.resolve(__dirname, ['..', 'hinatazakaImages', ...pathArr].join('/'), name)
   )
 
   axios({
