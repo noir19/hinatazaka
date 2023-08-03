@@ -3,14 +3,14 @@ lockfileVersion: 5.3
 specifiers:
   axios: ^0.21.4
   cheerio: ^1.0.0-rc.3
-  moment: ^2.24.0
+  moment: ^2.29.4
   prettier-eslint: ^9.0.1
   winston: ^3.2.1
 
 dependencies:
   axios: 0.21.4
   cheerio: 1.0.0-rc.10
-  moment: 2.29.1
+  moment: 2.29.4
   winston: 3.3.3
 
 devDependencies:
@@ -830,8 +830,8 @@ packages:
       minimist: 1.2.5
     dev: true
 
-  /moment/2.29.1:
-    resolution: {integrity: sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==}
+  /moment/2.29.4:
+    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
     dev: false
 
   /ms/2.1.2:
